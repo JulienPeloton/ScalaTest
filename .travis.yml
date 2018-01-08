@@ -4,4 +4,4 @@ scala:
 
 script:
   - cd scaladev
-  - sbt test
+  - sbt ++$TRAVIS_SCALA_VERSION test
