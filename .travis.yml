@@ -5,7 +5,7 @@ scala:
 script:
   - cd scaladev
   - echo $TRAVIS_SCALA_VERSION
-  - sbt ++$TRAVIS_SCALA_VERSION coverage test coverageReport
+  - sbt ++$TRAVIS_SCALA_VERSION coverage test
 
 after_success:
-  coveralls
+  sbt coveralls
