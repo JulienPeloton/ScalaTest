@@ -7,7 +7,16 @@ lazy val root = (project in file(".")).
      version      := "0.1.0"
    )),
    name := "sparkdev",
-   libraryDependencies += "org.apache.spark" %% "spark-core" % "2.1.0",
-   libraryDependencies += "org.apache.spark" %% "spark-sql" % "2.1.0",
-   libraryDependencies += scalaTest % Test
+   parallelExecution in Test := false,
+   coverageFailOnMinimum := true,
+   coverageHighlighting := true,
+   coverageMinimum := 70,
+   publishArtifact in Test := false,
+   libraryDependencies ++= Seq(
+     "org.apache.spark" %% "spark-core" % "2.1.0",
+     "org.apache.spark" %% "spark-sql" % "2.1.0",
+     "org.apache.spark" %% "spark-streaming" % "2.1.0",
+     "org.apache.spark" %% "spark-mllib" % "2.1.0",
+     scalaTest % Test
+   )
  )
