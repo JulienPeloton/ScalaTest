@@ -45,51 +45,51 @@ class ExtPointRDD[T](r:RDD[T]) extends PointRDD(
 }
 
 object makeShell {
-	/**
-	  * Generate data up to some redshift `max_redshift`, and project it into
-	  * n shells `nshells` in redshift. Data consist in points (RA, Dec, z).
-	  *
-	  * Usage: makeShell <ngalaxie> <nshell> <max_redshift> <selection> <outdir>
-	  *
-    * @constructor Create data and search for specific galaxies.
+  /**
+    * Generate data up to some redshift `max_redshift`, and project it into
+    * n shells `nshells` in redshift. Data consist in points (RA, Dec, z).
+    *
+    * Usage: makeShell <ngalaxie> <nshell> <max_redshift> <selection> <outdir>
+    *
+    * @constructor : Create data and search for specific galaxies.
     * @param ngalaxies int : Number of galaxie to simulate.
     * @param nshells int : Number of shells.
     * @param max_redshift int : Maximum redshift for the data
     * @param selection string : method to select galaxie.
     *   `envelope` or `target_and_search`
     * @param outdir string : output folder. Should not exist.
-		*
-	  */
-		val usage =
-			"""
-      Usage: makeShell <ngalaxies> <nshells> <max_redshift> <selection> <outdir>
-      """
+    *
+    */
+  val usage =
+    """
+    Usage: makeShell <ngalaxies> <nshells> <max_redshift> <selection> <outdir>
+    """
 
 	def main(args: Array[String]) {
-		/**
-			* Main program
+    /**
+      * Main program
       *
-      * @constructor Create data and search for specific galaxies.
+      * @constructor : Create data and search for specific galaxies.
       * @param ngalaxies int : Number of galaxie to simulate.
       * @param nshells int : Number of shells.
-  	  * @param max_redshift int : Maximum redshift for the data
+      * @param max_redshift int : Maximum redshift for the data
       * @param selection string : method to select galaxie.
       *   `envelope` or `target_and_search`
-  	  * @param outdir string : output folder. Should not exist.
-			*/
+      * @param outdir string : output folder. Should not exist.
+      */
 
-		// Check you call the script with the correct number of args
-		if (args.length < 5) {
+    // Check you call the script with the correct number of args
+    if (args.length < 5) {
       System.err.println(usage)
       System.exit(1)
     }
 
-		// Initialise Spark context
-		val conf = new SparkConf()
+    // Initialise Spark context
+    val conf = new SparkConf()
     val sc = new SparkContext(conf)
 
-		// Number of partitions for the data
-		val parts = 4
+    // Number of partitions for the data
+    val parts = 4
     println("Using only 4 hardcoded partitions for the moment! Fix me...")
 
     // Logger ??
@@ -98,8 +98,8 @@ object makeShell {
 
     // Define input parameters
     val ngal = args(0).toInt
-		val nshells = args(1).toInt
-		val max_redshift = args(2).toInt
+    val nshells = args(1).toInt
+    val max_redshift = args(2).toInt
     val selection_method = args(3).toString
 
     // Create output directory where products
@@ -108,21 +108,21 @@ object makeShell {
     outDir.mkdirs()
 
     // Generate the mock data set
-		val data = new generateData(ngal, max_redshift)
+    val data = new generateData(ngal, max_redshift)
 
-		// RDDified the data set
-		val points = data.buildPoints(ngal)
+    // RDDified the data set
+    val points = data.buildPoints(ngal)
     var rdd = sc.parallelize(points, parts).persist
 
-		// Save the result in a txt file
+    // Save the result in a txt file
     // Bottleneck, super slow operation!
-		rdd.coalesce(1, true).saveAsTextFile(outDir+"/input")
+    rdd.coalesce(1, true).saveAsTextFile(outDir+"/input")
 
-		// Have a look at 10 points
-		var array = rdd.take(10)
-		array.foreach(println)
+    // Have a look at 10 points
+    var array = rdd.take(10)
+    array.foreach(println)
 
-		// Extent the standard PointRDD class
+    // Extent the standard PointRDD class
     val objectRDD = new ExtPointRDD(rdd)
 
     // Select points depending on the selection method
@@ -133,16 +133,16 @@ object makeShell {
     if (selection_method == "envelope") {
       // Define your envelope. TODO: need to use curve sky coordinate!
       // I suspect that it only uses cartesian grid!
-  		val queryEnvelope = new Envelope(-45.0, 45.0, -20.0, 20.0)
+      val queryEnvelope = new Envelope(-45.0, 45.0, -20.0, 20.0)
 
       // Action
-  		val resultSize = RangeQuery.SpatialRangeQuery(
+      val resultSize = RangeQuery.SpatialRangeQuery(
         objectRDD, queryEnvelope, false, false)
       println(resultSize.count() + " galaxies found in this range!")
 
       // Save the result in a txt file
       // Bottleneck: super slow operation!
-  		resultSize.coalesce(1, true).saveAsTextFile(outDir+"/output")
+      resultSize.coalesce(1, true).saveAsTextFile(outDir+"/output")
 
     } else if (selection_method == "target_and_search") {
       // Initialise your geometry
@@ -185,51 +185,46 @@ object makeShell {
       System.err.println("You need to use `envelope` or `target_and_search`\n")
       System.exit(1)
     }
-	}
+  }
 }
 
 class generateData(var ngal: Int, var max_redshift: Int) {
-	/**
-	  * You can access using
-
-		* {{{
-		* val data = new generateData(10000, 1)
-		* }}}
-		*
-		* @param ngal int : number of galaxies to draw.
+  /**
+    *
+    * @param ngal int : number of galaxies to draw.
     * @param max_redshift int : maximum redshift for the simulation.
     *
-		*/
-		def buildPoints(n:Int) = {
-      /**
-        * Iterator to construct Points (x, y).
-        *
-        * @param n int : number of points to simulate.
-        *
-        * @return nextPoint Point : com.vividsolutions.jts.geom.Point
-        *
-        */
-      // Initialise random number generator
-	    val r = scala.util.Random
-      r.setSeed(5943759)
+    */
+  def buildPoints(n:Int) = {
+    /**
+      * Iterator to construct Points (x, y).
+      *
+      * @param n int : number of points to simulate.
+      *
+      * @return nextPoint Point : com.vividsolutions.jts.geom.Point
+      *
+      */
+    // Initialise random number generator
+    val r = scala.util.Random
+    r.setSeed(5943759)
 
-			// Ra / Dec boundaries
-	    val x0 = -180.0
-	    val x1 = 180.0
-	    val y0 = -90.0
-	    val y1 = 90.0
+    // Ra / Dec boundaries
+    val x0 = -180.0
+    val x1 = 180.0
+    val y0 = -90.0
+    val y1 = 90.0
 
-	    val width = x1 - x0
-	    val height = y1 - y0
+    val width = x1 - x0
+    val height = y1 - y0
 
-	    def fx = x0 + width*r.nextFloat
-	    def fy = y0 + height*r.nextFloat
-	    def fv = 12 * r.nextFloat
+    def fx = x0 + width*r.nextFloat
+    def fy = y0 + height*r.nextFloat
+    def fv = 12 * r.nextFloat
 
-      val fact = new GeometryFactory()
-	    // def nextPoint = new ExtPoint(fact.createPoint(new Coordinate(fx, fy)), fv)
-			def nextPoint = new ExtPoint(fact.createPoint(new Coordinate(fx, fy)))
+    val fact = new GeometryFactory()
+    // def nextPoint = new ExtPoint(fact.createPoint(new Coordinate(fx, fy)), fv)
+    def nextPoint = new ExtPoint(fact.createPoint(new Coordinate(fx, fy)))
 
-	    for (i <- 1 to n) yield (nextPoint)
-	  }
+    for (i <- 1 to n) yield (nextPoint)
+  }
 }
