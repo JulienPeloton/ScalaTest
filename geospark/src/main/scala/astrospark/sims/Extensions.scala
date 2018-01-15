@@ -17,10 +17,29 @@ class ExtPoint(point: Point) extends Point(
     * Extend the class Point (jts) to add
     * the routine getPoint.
     *
-    * @constructor Add routine getPoint to the class Point
-    * @param point Point : coordinate of the point
+    * @constructor Add routine to access point attribute.
+    * @param point Point : (RA / Dec) coordinate of the point.
     */
   def getPoint = this.point
+}
+
+class ExtPoint3D(point: Point, redshift: Double) extends Point(
+    point.getCoordinateSequence, point.getFactory) {
+  /**
+    * Extend the class Point (jts) to add
+    * the routine getPoint.
+    *
+    * @constructor Add routines to access attributes
+    * @param point Point : (RA / Dec) coordinate of the point
+    * @param redshift Double : Redshift of the point
+    *
+    */
+  // Include the redshift when printing out
+  override def toString: String = super.toString + redshift
+
+  // Access instance attributes
+  def getPoint = this.point
+  def getRedshift = this.redshift
 }
 
 class ExtPointRDD[T](r:RDD[T]) extends PointRDD(

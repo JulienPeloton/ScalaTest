@@ -21,11 +21,13 @@ plot=${JARDIR}/swiftvis2_2.11-0.1.0-SNAPSHOT.jar
 GEOSPARK=org.datasyslab:geospark:1.0.1
 JTS=com.vividsolutions:jts:1.13
 
+PATH_OF_LOG4J=$PWD/toto.txt
+
 # Parameters
-tag=test1
+tag=test2
 ngal=1000000
 nshell=10
-maxred=1
+maxred=5
 method=envelope
 outdir=out_$tag
 
@@ -35,7 +37,7 @@ echo \
 Launching Spark processing!
 """
 spark-submit \
-  --master ${MASTER}\
+  --master ${MASTER} \
   --executor-memory ${MEM_EXECUTOR} \
   --jars $plot \
   --packages ${GEOSPARK},${JTS} \

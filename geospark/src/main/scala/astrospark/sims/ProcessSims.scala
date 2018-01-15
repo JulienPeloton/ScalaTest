@@ -66,12 +66,17 @@ object makeShell {
     val sc = new SparkContext(conf)
 
     // Number of partitions for the data
-    val parts = 4
+    val parts = 16
     println("Using only 4 hardcoded partitions for the moment! Fix me...")
 
     // Logger ??
     Logger.getLogger("org").setLevel(Level.WARN)
     Logger.getLogger("akka").setLevel(Level.WARN)
+
+    // For profiling
+    val filename = "profiling_" + parts.toString + ".txt"
+    val T = new Timing(filename)
+    var msg : String = ""
 
     // Define input parameters
     val ngal = args(0).toInt
@@ -85,22 +90,37 @@ object makeShell {
     outDir.mkdirs()
 
     // Generate the mock data set
+
     val data = new generateData(ngal, max_redshift)
 
     // RDDified the data set
-    val points = data.buildPoints(ngal)
-    var rdd = sc.parallelize(points, parts).persist
+    msg = "DataGen"
+    val points = T.timeit(msg, data.buildPoints(ngal))
+
+    msg = "RDD"
+    var rdd = T.timeit(msg, sc.parallelize(points, parts).persist)
 
     // Save the result in a txt file
     // Bottleneck, super slow operation!
-    rdd.coalesce(1, true).saveAsTextFile(outDir+"/input")
+    msg = "WriteText"
+    T.timeit(msg, rdd.coalesce(1, true).saveAsTextFile(outDir+"/input"))
 
     // Have a look at 10 points
     var array = rdd.take(10)
     array.foreach(println)
+    println(rdd.count)
+
+    // Filter redshifts
+    msg = "FilterRedshifts"
+    val rdd_filtered = T.timeit(
+      msg, rdd.filter(x => x.getRedshift > 1 && x.getRedshift < 2))
+    var array_filtered = rdd_filtered.take(10)
+    array_filtered.foreach(println)
+    msg = "Count"
+    println(T.timeit(msg, rdd_filtered.count))
 
     // Extent the standard PointRDD class
-    val objectRDD = new ExtPointRDD(rdd)
+    val objectRDD = new ExtPointRDD(rdd_filtered)
 
     // Select points depending on the selection method
     // envelope : Define an envelope and count the point inside
@@ -113,8 +133,9 @@ object makeShell {
       val queryEnvelope = new Envelope(-45.0, 45.0, -20.0, 20.0)
 
       // Action
-      val resultSize = RangeQuery.SpatialRangeQuery(
-        objectRDD, queryEnvelope, false, false)
+      msg = "FilterRADec"
+      val resultSize = T.timeit(msg, RangeQuery.SpatialRangeQuery(
+        objectRDD, queryEnvelope, false, false))
       println(resultSize.count() + " galaxies found in this range!")
 
       // Save the result in a txt file

@@ -15,7 +15,7 @@ class generateData(var ngal: Int, var max_redshift: Int) {
     * @param max_redshift int : maximum redshift for the simulation.
     *
     */
-  def buildPoints(n:Int) = {
+  def buildPoints(n : Int) = {
     /**
       * Iterator to construct Points (x, y).
       *
@@ -37,13 +37,14 @@ class generateData(var ngal: Int, var max_redshift: Int) {
     val width = x1 - x0
     val height = y1 - y0
 
-    def fx = x0 + width*r.nextFloat
-    def fy = y0 + height*r.nextFloat
-    def fv = 12 * r.nextFloat
+    def ra = x0 + width*r.nextFloat
+    def dec = y0 + height*r.nextFloat
+    def redshift = max_redshift * r.nextFloat
 
     val fact = new GeometryFactory()
-    // def nextPoint = new ExtPoint(fact.createPoint(new Coordinate(fx, fy)), fv)
-    def nextPoint = new ExtPoint(fact.createPoint(new Coordinate(fx, fy)))
+    def nextPoint = new ExtPoint3D(
+      fact.createPoint(new Coordinate(ra, dec)), redshift)
+    // def nextPoint = new ExtPoint(fact.createPoint(new Coordinate(fx, fy)))
 
     for (i <- 1 to n) yield (nextPoint)
   }
