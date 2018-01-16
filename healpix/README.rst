@@ -26,6 +26,8 @@ Install sbt and run
 ::
 
   $ sbt run
+  ... blablabla ...
+  Pixel number (nside=512): 1299712
 
 Documentation
 ====
