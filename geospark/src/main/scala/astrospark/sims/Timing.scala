@@ -21,7 +21,7 @@ class Timing(filename : String) {
     val ns = dt % 1000000000
 
     Console.withOut(fos) {
-      println(text + " > " + sec + "." + ns) }
+      println(text + " " + sec + "." + ns) }
     result
   }
 }

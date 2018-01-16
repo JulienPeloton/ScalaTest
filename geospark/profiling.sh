@@ -10,6 +10,7 @@ sbt package
 ############################
 # Resources needed
 MASTER=local[*]
+# MASTER=spark://192.168.3.213:7077
 MEM_EXECUTOR=4G
 
 GEOSPARK=org.datasyslab:geospark:1.0.1
@@ -20,28 +21,33 @@ PATH_OF_LOG4J=$PWD/toto.txt
 # Parameters
 tag=test2
 ngal=1000000
-nshell=10
+nshell=2
 maxred=5
 method=envelope
 outdir=out_$tag
-parts=4
 
 # spark -> python
 echo \
 """
 Launching Spark processing!
 """
-spark-submit \
-  --master ${MASTER} \
-  --executor-memory ${MEM_EXECUTOR} \
-  --packages ${GEOSPARK},${JTS} \
-  target/scala-2.11/ProcessSims_2.11-0.1.0.jar \
-  $ngal \
-  $nshell \
-  $maxred \
-  $method \
-  $outdir \
-  $parts
+for exp in {1..11}
+do
+  parts=$((2 ** $exp))
+  echo "Process $parts parts"
+
+  spark-submit \
+    --master ${MASTER} \
+    --executor-memory ${MEM_EXECUTOR} \
+    --packages ${GEOSPARK},${JTS} \
+    target/scala-2.11/ProcessSims_2.11-0.1.0.jar \
+    $ngal \
+    $nshell \
+    $maxred \
+    $method \
+    $outdir \
+    $parts
+done
 
 echo \
 """

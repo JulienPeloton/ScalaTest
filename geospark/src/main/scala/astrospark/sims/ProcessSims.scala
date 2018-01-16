@@ -39,7 +39,7 @@ object makeShell {
     */
   val usage =
     """
-    Usage: makeShell <ngalaxies> <nshells> <max_redshift> <selection> <outdir>
+    Usage: makeShell <ngalaxies> <nshells> <max_redshift> <selection> <outdir> <nparts>
     """
 
 	def main(args: Array[String]) {
@@ -66,8 +66,7 @@ object makeShell {
     val sc = new SparkContext(conf)
 
     // Number of partitions for the data
-    val parts = 16
-    println("Using only 4 hardcoded partitions for the moment! Fix me...")
+    val parts = args(5).toInt
 
     // Logger ??
     Logger.getLogger("org").setLevel(Level.WARN)
@@ -102,8 +101,8 @@ object makeShell {
 
     // Save the result in a txt file
     // Bottleneck, super slow operation!
-    msg = "WriteText"
-    T.timeit(msg, rdd.coalesce(1, true).saveAsTextFile(outDir+"/input"))
+    // msg = "WriteText"
+    // T.timeit(msg, rdd.coalesce(1, true).saveAsTextFile(outDir+"/input"))
 
     // Have a look at 10 points
     var array = rdd.take(10)
@@ -113,7 +112,7 @@ object makeShell {
     // Filter redshifts
     msg = "FilterRedshifts"
     val rdd_filtered = T.timeit(
-      msg, rdd.filter(x => x.getRedshift > 1 && x.getRedshift < 2))
+      msg, rdd.filter(x => x.getRedshift > 1 && x.getRedshift < 5))
     var array_filtered = rdd_filtered.take(10)
     array_filtered.foreach(println)
     msg = "Count"
@@ -130,7 +129,7 @@ object makeShell {
     if (selection_method == "envelope") {
       // Define your envelope. TODO: need to use curve sky coordinate!
       // I suspect that it only uses cartesian grid!
-      val queryEnvelope = new Envelope(-45.0, 45.0, -20.0, 20.0)
+      val queryEnvelope = new Envelope(-45.0, 45.0, -40.0, 40.0)
 
       // Action
       msg = "FilterRADec"
@@ -140,7 +139,7 @@ object makeShell {
 
       // Save the result in a txt file
       // Bottleneck: super slow operation!
-      resultSize.coalesce(1, true).saveAsTextFile(outDir+"/output")
+      // resultSize.coalesce(1, true).saveAsTextFile(outDir+"/output")
 
     } else if (selection_method == "target_and_search") {
       // Initialise your geometry
