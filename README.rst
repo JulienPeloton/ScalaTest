@@ -6,4 +6,7 @@ ScalaTest
 
 Just a few tests to build a project in Scala + Spark
 
-more to come
+Interesting features
+
+* Use of GeoSpark (geospark/)
+* Use of Healpix java (healpix/)
