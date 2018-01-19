@@ -15,16 +15,14 @@ MEM_EXECUTOR=4G
 GEOSPARK=org.datasyslab:geospark:1.0.1
 JTS=com.vividsolutions:jts:1.13
 
-PATH_OF_LOG4J=$PWD/toto.txt
-
 # Parameters
 tag=test2
-ngal=1000000
+ngal=100000000
 nshell=10
 maxred=5
 method=envelope
 outdir=out_$tag
-parts=4
+parts=1000
 
 # spark -> python
 echo \

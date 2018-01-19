@@ -8,25 +8,23 @@ package astrospark.sims
 import com.vividsolutions.jts.geom.Coordinate
 import com.vividsolutions.jts.geom.GeometryFactory
 
-class generateData(var ngal: Int, var max_redshift: Int) {
+class generateData(val max_redshift: Int) extends java.io.Serializable {
   /**
     *
-    * @param ngal int : number of galaxies to draw.
     * @param max_redshift int : maximum redshift for the simulation.
     *
     */
-  def buildPoints(n : Int) = {
+  def buildPoints = {
     /**
-      * Iterator to construct Points (x, y).
-      *
-      * @param n int : number of points to simulate.
+      * Generator (iterator) to construct Points (ra, dec, z).
+      * TODO: Fix the seed!
       *
       * @return nextPoint Point : com.vividsolutions.jts.geom.Point
       *
       */
     // Initialise random number generator
     val r = scala.util.Random
-    r.setSeed(5943759)
+    // r.setSeed(5943759)
 
     // Ra / Dec boundaries
     val x0 = -180.0
@@ -37,15 +35,17 @@ class generateData(var ngal: Int, var max_redshift: Int) {
     val width = x1 - x0
     val height = y1 - y0
 
-    def ra = x0 + width*r.nextFloat
-    def dec = y0 + height*r.nextFloat
+    // Define your coordinate
+    def ra = x0 + width * r.nextFloat
+    def dec = y0 + height * r.nextFloat
     def redshift = max_redshift * r.nextFloat
 
     val fact = new GeometryFactory()
     def nextPoint = new ExtPoint3D(
       fact.createPoint(new Coordinate(ra, dec)), redshift)
-    // def nextPoint = new ExtPoint(fact.createPoint(new Coordinate(fx, fy)))
 
-    for (i <- 1 to n) yield (nextPoint)
+    // Return the point
+    nextPoint
+
   }
 }

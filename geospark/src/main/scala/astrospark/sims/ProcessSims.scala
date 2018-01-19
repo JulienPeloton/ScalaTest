@@ -90,14 +90,18 @@ object makeShell {
 
     // Generate the mock data set
 
-    val data = new generateData(ngal, max_redshift)
+    val data = new generateData(max_redshift)
 
-    // RDDified the data set
-    msg = "DataGen"
-    val points = T.timeit(msg, data.buildPoints(ngal))
-
+    // Build the data set, RDDified it, and split in partitions.
+    // Spark is lazy! You should pass the range in the
+    // parallelize, and the method in the map (and not the method iterated
+    // in the the parallelize directly). By doing so, you can play with
+    // data set way bigger than your RAM or storage! Amazing!
     msg = "RDD"
-    var rdd = T.timeit(msg, sc.parallelize(points, parts).persist)
+    var rdd = T.timeit(
+      msg,
+      sc.parallelize((1 to ngal), parts).
+      map(_=>data.buildPoints))
 
     // Save the result in a txt file
     // Bottleneck, super slow operation!

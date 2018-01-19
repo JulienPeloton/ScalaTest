@@ -16,11 +16,9 @@ MEM_EXECUTOR=4G
 GEOSPARK=org.datasyslab:geospark:1.0.1
 JTS=com.vividsolutions:jts:1.13
 
-PATH_OF_LOG4J=$PWD/toto.txt
-
 # Parameters
 tag=test2
-ngal=1000000
+ngal=10000000
 nshell=2
 maxred=5
 method=envelope
