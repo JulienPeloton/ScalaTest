@@ -13,6 +13,7 @@ lazy val root = (project in file(".")).
    coverageMinimum := 70,
    publishArtifact in Test := false,
    libraryDependencies ++= Seq(
+     "org.apache.spark" %% "spark-core" % "2.1.0",
      scalaTest % Test
    )
  )
