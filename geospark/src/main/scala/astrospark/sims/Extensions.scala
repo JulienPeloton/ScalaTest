@@ -42,13 +42,15 @@ class ExtPoint3D(point: Point, redshift: Double) extends Point(
   def getRedshift = this.redshift
 }
 
-class ExtPointRDD[T](r:RDD[T]) extends PointRDD(
+class ExtPointRDD[T](r : RDD[T]) extends PointRDD(
     r.asInstanceOf[RDD[Point]]) {
   /**
-    * Not really sure why and how... Fix me!
+    * Deprecated.
+    * Better to use directly:
+    * val objectRDD = new PointRDD(rdd.asInstanceOf[RDD[Point]])
     *
-    * @constructor Extend the PointRDD class by....
-    * @param r RDD[T] : Element of a RDD?
+    * @constructor Transform a RDD of type T into a PointRDD of type T
+    * @param r RDD[T] : RDD of type T
     *
     */
   analyze()

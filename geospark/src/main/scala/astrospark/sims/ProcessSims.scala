@@ -10,13 +10,17 @@ import scala.collection.JavaConverters._
 
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
+import org.apache.spark.rdd.RDD
 
 import org.apache.log4j.Level
 import org.apache.log4j.Logger
 
 import org.datasyslab.geospark.spatialOperator.RangeQuery
 import org.datasyslab.geospark.spatialOperator.KNNQuery
+import org.datasyslab.geospark.spatialRDD.PointRDD
 
+
+import com.vividsolutions.jts.geom.Point
 import com.vividsolutions.jts.geom.Coordinate
 import com.vividsolutions.jts.geom.GeometryFactory
 import com.vividsolutions.jts.geom.Envelope
@@ -55,6 +59,10 @@ object makeShell {
       * @param outdir string : output folder. Should not exist.
       */
 
+    // Set to Level.WARN is you want verbosity
+    Logger.getLogger("org").setLevel(Level.OFF)
+    Logger.getLogger("akka").setLevel(Level.OFF)
+
     // Check you call the script with the correct number of args
     if (args.length < 5) {
       System.err.println(usage)
@@ -67,10 +75,6 @@ object makeShell {
 
     // Number of partitions for the data
     val parts = args(5).toInt
-
-    // Logger ??
-    Logger.getLogger("org").setLevel(Level.WARN)
-    Logger.getLogger("akka").setLevel(Level.WARN)
 
     // For profiling
     val filename = "profiling_" + parts.toString + ".txt"
@@ -122,8 +126,8 @@ object makeShell {
     msg = "Count"
     println(T.timeit(msg, rdd_filtered.count))
 
-    // Extent the standard PointRDD class
-    val objectRDD = new ExtPointRDD(rdd_filtered)
+    // Transform the RDD into a PointRDD
+    val objectRDD = new PointRDD(rdd_filtered.asInstanceOf[RDD[Point]])
 
     // Select points depending on the selection method
     // envelope : Define an envelope and count the point inside
