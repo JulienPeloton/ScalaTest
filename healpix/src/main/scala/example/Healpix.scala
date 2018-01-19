@@ -42,6 +42,7 @@ object HelloPixelWorld extends App {
               .map(p => point(p))
               .map(p => hp.ang2pix(p))
 
-  val ipix4 = T.timeit("Spark took ", rdd.count())
+  // Trigger the action
+  val ipix4 = T.timeit("Spark took", rdd.count())
 
 }

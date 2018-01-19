@@ -2,12 +2,13 @@
 Healpix - JAVA
 ====
 
-(under construction)
+The idea is to test the Healpix Java API combined with Spark.
 
 Create the jar
 ====
 
-Download `Healpix <https://sourceforge.net/projects/healpix/>`_ and install ant. Then run
+Download `Healpix <https://sourceforge.net/projects/healpix/>`_ and install ant.
+Then run
 
 ::
 
@@ -21,13 +22,13 @@ et voilà! Notice that we also provide directly the jar in this repo.
 Run the example
 ====
 
-Install sbt and run
+Run the provided script (you need sbt, and spark of course!):
 
 ::
 
-  $ sbt run
-  ... blablabla ...
-  Pixel number (nside=512): 1299712
+  $ ./run.sh
+  ...
+  Spark took X.Y s
 
 Documentation
 ====

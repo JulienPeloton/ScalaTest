@@ -20,7 +20,7 @@ class Timing {
     val sec = dt / 1000000000
     val ns = dt % 1000000000
 
-    println(text + " " + sec + "." + ns)
+    println(text + " " + sec + "." + ns + " s")
     // Console.withOut(fos) {
     //   println(text + " " + sec + "." + ns) }
     result
