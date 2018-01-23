@@ -1,5 +1,9 @@
 package healpix_test
 
+import jep.NDArray
+import jep.JepConfig
+import jep.Jep
+
 import org.apache.spark.SparkConf
 import org.apache.spark.SparkContext
 
@@ -13,6 +17,9 @@ import org.apache.log4j.Logger
 object HelloPixelWorld extends App {
   // Simple object to retrieve pixel number
   // given (theta, phi) position of a point.
+  val jep = new Jep(new JepConfig().addSharedModules("numpy"))
+  jep.eval("import numpy as np")
+  jep.eval("import healpy as hp")
 
   // Set to Level.WARN is you want verbosity
   Logger.getLogger("org").setLevel(Level.OFF)
@@ -26,7 +33,7 @@ object HelloPixelWorld extends App {
   val hp = new HealpixBase(nside, RING)
 
   // Define number of points on the sky
-  val npoints = 100000000
+  val npoints = 10000
 
   // Our data generator
   val r = scala.util.Random
