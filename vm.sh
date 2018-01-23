@@ -3,8 +3,12 @@
 # HOSTNAME
 sudo echo "134.158.75.49 $HOSTNAME" | sudo tee -a /etc/hosts
 
-# JAVA
+# Build tools
 sudo apt-get -y update
+sudo apt-get -y upgrade
+sudo apt-get install build-essential
+
+# JAVA
 sudo apt-get install -y openjdk-8-jdk
 
 # PYTHON (ANACONDA)
@@ -14,6 +18,9 @@ CONTREPO=https://repo.continuum.io/archive/
 ANACONDAURL=$(wget -q -O - $CONTREPO index.html | grep "Anaconda3-" | grep "Linux" | grep "86_64" | head -n 1 | cut -d \" -f 2)
 wget -O ~/anaconda.sh $CONTREPO$ANACONDAURL
 bash ~/anaconda.sh
+
+# Healpy (takes time...)
+pip install healpy
 
 # SCALA
 sudo apt install scala
