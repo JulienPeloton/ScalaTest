@@ -1,34 +1,14 @@
+package grid
+
 import org.apache.spark.util.SizeEstimator
 
 import healpix.essentials.HealpixBase
 import healpix.essentials.Pointing
 import healpix.essentials.Scheme.RING
 
-// Small wrapper around the spark memory profiler
-class Prof {
-  def estimate[R](text: String, block: => AnyRef): Unit = {
-    val size = SizeEstimator.estimate(block) / 1024.0
-    println(text + " " + size.toString + " KB")
-  }
-}
+import scala.concurrent._
+import ExecutionContext.Implicits.global
 
-import java.io.{File, FileOutputStream}
-
-class Timing {
-
-  def timeit[R](text: String, block: => R): R = {
-    val t0 = System.nanoTime()
-    val result = block
-    val t1 = System.nanoTime()
-
-    val dt = t1 - t0
-    val sec = dt / 1000000000
-    val ns = dt % 1000000000
-
-    println(text + " " + sec + "." + ns + " s")
-    result
-  }
-}
 
 object HealpixMap {
 
@@ -66,17 +46,22 @@ object HealpixMap {
     }
   }
 
-  case class Points(n: Int, grid: HealpixGrid) {
-
-    val data = (for(i <- 1 to n) yield Point(fra, fdec, fz))
+  case class Points(n : Int, grid: HealpixGrid) {
+    // Notice the par use to parallelize
+    val data = (for(i <- 1 to n) yield Point(fra, fdec, fz)).par
       .groupBy(x => grid.index(x.ra, x.dec))
+
+    // Equivalent
+    // val data = (0 to n).par.map(x => Point(fra, fdec, fz))
+    //   .groupBy(x => grid.index(x.ra, x.dec))
   }
 
   def main(args: Array[String]) {
-    println("TMap")
+    println("Start!")
+
     val nside : Int = 512
 
-    val n = 400000
+    val n = 10000
 
     // Just le timing pour 1 passage
     val t = T.timeit(
@@ -84,7 +69,7 @@ object HealpixMap {
       Points(n, HealpixGrid(nside, ptg)))
 
     // Memory profiling for several iterations
-    val p = for (i <- 0 to 10) yield P.estimate(
+    val p = for (i <- 0 to 2) yield P.estimate(
       "Iteration " + i.toString + " (" + Points(n, HealpixGrid(nside, ptg)).data.toList.length.toString + s" unique cells / $n initial points) - size : ",
       Points(n, HealpixGrid(nside, ptg)))
     // P.estimate("grille", p)
