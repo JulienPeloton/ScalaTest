@@ -3,6 +3,9 @@ package grid
 import healpix.essentials.HealpixBase
 import healpix.essentials.Pointing
 
+// Make the class Pointing Serializable
+class ExtPointing extends Pointing with java.io.Serializable
+
 /** Abstract class to manage grids.
     Put here common methods */
 abstract class Grid {
@@ -15,7 +18,7 @@ abstract class Grid {
     @param hp Instance of HealpixBase
     @param ptg Instance of Pointing */
 case class HealpixGrid(
-    nside : Int, hp : HealpixBase, ptg : Pointing) extends Grid {
+    nside : Int, hp : HealpixBase, ptg : ExtPointing) extends Grid {
 
   /** Map (RA/Dec) to Healpix pixel index
       @param ra ra coordinate [Double]

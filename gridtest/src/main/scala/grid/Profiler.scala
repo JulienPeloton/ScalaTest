@@ -12,9 +12,10 @@ class Profiler {
       @param text Message to print after the execution
       @param block object to be monitored
       @return Unit */
-  def memory_usage[R](text : String, block : => AnyRef) : Unit = {
+  def memory_usage[R](text : String, block : => AnyRef) : Double = {
     val size = SizeEstimator.estimate(block) / 1024.0
     println(text + " " + size.toString + " KB")
+    size
   }
 
   /** Method to estimate the execution time of a block R.

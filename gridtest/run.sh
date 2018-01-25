@@ -8,7 +8,7 @@ HEALPIX=lib/jhealpix.jar
 
 # Parameters
 gridtype="healpix"
-npoints=100
+npoints=10000000
 resolution=512
 
 # Run it!
