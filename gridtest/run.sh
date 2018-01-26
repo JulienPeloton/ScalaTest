@@ -7,13 +7,14 @@ sbt package
 HEALPIX=lib/jhealpix.jar
 
 # Parameters
-gridtype="healpix"
-npoints=10000000
+catalog=""#"data/catalog.txt"
 resolution=512
+npoints=10000
+
 
 # Run it!
 spark-submit \
   --master local[*] \
   --jars ${HEALPIX} \
   target/scala-2.11/gridtest_2.11-0.1.0.jar \
-  $gridtype $npoints $resolution
+  $catalog $resolution $npoints

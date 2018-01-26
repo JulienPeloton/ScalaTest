@@ -1,5 +1,7 @@
 package grid
 
+import java.nio.file.{Paths, Files}
+
 import healpix.essentials.HealpixBase
 import healpix.essentials.Pointing
 import healpix.essentials.Scheme.RING
@@ -16,7 +18,10 @@ import org.apache.log4j.Logger
 object MakeGrid {
   val usage =
     """
-    Usage: MakeGrid <gridtype> <npoints> <nside>
+    Usage: MakeGrid <catalog> <nside> <npoints>
+
+    MakeGrid catalog.txt 512 0 // work with catalog.txt on a grid at nside=512
+    MakeGrid None 512 10000 // Simulate 10000 points on a grid at nside=512
 
     """
 
@@ -37,6 +42,32 @@ object MakeGrid {
   val r = scala.util.Random
   r.setSeed(0)
 
+  /** Convert declination into theta
+      @param dec declination coordinate in degree
+      @return theta coordinate in radian */
+  def dec2theta(dec : Double) : Double = {
+    Math.PI / 2.0 - Math.PI / 180.0 * dec
+  }
+
+  /** Convert right ascension into phi
+      @param dec RA coordinate in degree
+      @return phi coordinate in radian */
+  def ra2phi(ra : Double) : Double = {
+    Math.PI / 180.0 * ra
+  }
+
+  /** Convert an array of String into a Point.
+      If the redshift is not present, returns Point(ra, dec, 0.0).
+      TODO: Need to catch other exceptions on ra and dec!
+      @param x array of String ["RA", "Dec", "z"]
+      @return Point(ra, dec, z) or Point(ra, dec, 0.0) if z undefined. */
+  def convertToPoint(x : Array[String]) : Point = {
+    scala.util.Try(
+      Point(x(0).toDouble, x(1).toDouble, x(2).toDouble))
+    .getOrElse(
+      Point(x(0).toDouble, x(1).toDouble, 0.0))
+  }
+
   // Initialise the coordinates (RA/Dec/redshift)
   // Notice that we work in Double (8B each).
   def fra = r.nextFloat() * Math.PI
@@ -49,20 +80,29 @@ object MakeGrid {
   // Serial version (i.e. pure Scala)
   case class Points(n : Int, grid : Grid) {
     // Use (for).par to parallelize
-    val data = (for(i <- 1 to n) yield Point(fra, fdec, fz))
-      .groupBy(x => grid.index(x.ra, x.dec))
+    val data = (for(i <- 1 to n) yield Point(fra, fdec, fz)) // Create the data
+      .groupBy(x => grid.index(x.ra, x.dec)) // Indexing
 
     // Equivalent
     // val data = (1 to n).map(x => Point(fra, fdec, fz))
     //   .groupBy(x => grid.index(x.ra, x.dec))
   }
 
-  // Spark version!
-  case class scPoints(n : Int, grid : Grid) {
-    val data = sc.parallelize((1 to n), parts)
-      .map(x => Point(fra, fdec, fz))
-      .groupBy(x => grid.index(x.ra, x.dec))
-      // .count
+  // Spark version - data from catalog or simulation on the fly
+  // TODO: Need doc!
+  case class scPoints(n : Int, grid : Grid, catalog : String = "") {
+    val iscatalog = Files.exists(Paths.get(catalog))
+
+    val data = if (iscatalog) {
+      sc.textFile(catalog, parts) // distribute the data from the cat
+        .map(x => x.split(" ")) // make Array[String]
+        .map(x => convertToPoint(x)) // Convert into Point
+        .groupBy(x => grid.index(dec2theta(x.dec), ra2phi(x.ra))) // Indexing
+    } else {
+      sc.parallelize((1 to n), parts) // distribute the data
+        .map(x => Point(fra, fdec, fz)) // Yield point
+        .groupBy(x => grid.index(x.ra, x.dec)) // Indexing
+    }
   }
 
   def main(args: Array[String]) {
@@ -73,11 +113,14 @@ object MakeGrid {
     }
 
     // Define input parameters
-    val gridtype = args(0).toString
-    println(s"Processing $gridtype grid")
+    val catalog = args(0).toString
+    val resolution = args(1).toInt
+    val npoints = args(2).toInt
 
-    val npoints = args(1).toInt
-    val resolution = args(2).toInt
+    val iscatalog = Files.exists(Paths.get(catalog))
+    if (iscatalog) {
+      println(s"Reading data from catalog $catalog")
+    } else println(s"Simulate data on-the-fly with $npoints points")
 
     // Initialise the Pointing object
     var ptg = new ExtPointing
@@ -89,7 +132,7 @@ object MakeGrid {
     val mygrid = HealpixGrid(resolution, hp, ptg)
 
     // Put your code below //
-    val g = scPoints(npoints, mygrid)
+    val g = scPoints(npoints, mygrid, catalog)
 
     // Just record the memory usage object case class vs direct tuple
     val po = Point(fra, fdec, fz)
@@ -102,6 +145,20 @@ object MakeGrid {
       s"Sorting and counting $npoints points took ",
       g.data.count)
     println(p.toString + " cells hit!")
+
+    // Find the max hit
+    val max = P.timeit(
+      s"Finding the max ",
+      g.data.map(x => x._2.size).reduce((x, y) => if (x > y) x else y))
+    println(max.toString + " maxhit hit!")
+
+    // Select only high density region
+    val sub = P.timeit(
+      s"Filtering $npoints points took ",
+      g.data.filter(_._2.size > max/50.0).map(x => x._1))
+    println(sub.toString + " cells hit!")
+
+    P.timeit("Writing...", sub.coalesce(1, true).saveAsTextFile("output/"))
 
     val m = P.memory_usage("Partition weights ", g)
 
