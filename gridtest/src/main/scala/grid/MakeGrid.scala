@@ -93,6 +93,7 @@ object MakeGrid {
   case class scPoints(n : Int, grid : Grid, catalog : String = "") {
     val iscatalog = Files.exists(Paths.get(catalog))
 
+    // My basic operations (common for all the rest)
     val data = if (iscatalog) {
       sc.textFile(catalog, parts) // distribute the data from the cat
         .map(x => x.split(" ")) // make Array[String]
@@ -140,26 +141,28 @@ object MakeGrid {
     println("Partitions = " + (npoints/parts).toString + " points")
     println("Partitions = " + (npoints/parts * sizePoint).toString + " KB")
 
-    // Just le timing pour 1 passage sort + count
+    // Just the timing for sort + count
     val p = P.timeit(
-      s"Sorting and counting $npoints points took ",
+      s"Sorting and counting took ",
       g.data.count)
     println(p.toString + " cells hit!")
 
-    // Find the max hit
+    // Find the maximum hit
     val max = P.timeit(
       s"Finding the max ",
       g.data.map(x => x._2.size).reduce((x, y) => if (x > y) x else y))
-    println(max.toString + " maxhit hit!")
+    println("The maximum number of galaxies in one pixel is " + max.toString)
 
-    // Select only high density region
+    // Select only high density region using some threshold based on the max.
     val sub = P.timeit(
-      s"Filtering $npoints points took ",
+      s"Filtering took ",
       g.data.filter(_._2.size > max/50.0).map(x => x._1))
-    println(sub.toString + " cells hit!")
+    println(sub.count.toString + " filtered pixels found!")
 
-    P.timeit("Writing...", sub.coalesce(1, true).saveAsTextFile("output/"))
+    // Write the output
+    P.timeit("Writing... took", sub.coalesce(1, true).saveAsTextFile("output/"))
 
+    // Size of the gridded points.
     val m = P.memory_usage("Partition weights ", g)
 
 
